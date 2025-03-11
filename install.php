@@ -1,94 +1,50 @@
 <?php
 
-echo "====================================\n";
-echo "  Framework o'rnatish jarayoni\n";
-echo "====================================\n";
+if (file_exists("config.php")) {
+    die("⚠️ Install allaqachon bajarilgan!");
+}
 
-// 1. Foydalanuvchidan bazaga ulanish ma'lumotlarini so‘rash
-$dbhost = readline("Ma'lumotlar bazasi serveri (localhost): ");
-$dbport = readline("Port (3306): ");
-$dbuser = readline("Foydalanuvchi nomi (root): ");
-$dbpassword = readline("Parol: ");
-$dbname = readline("Bazaning nomi: ");
+echo "🚀 Framework o‘rnatish boshlandi...\n";
 
-// Agar foydalanuvchi kiritmasa, standart qiymatlarni qo‘llash
-$dbhost = $dbhost ?: "localhost";
-$dbport = $dbport ?: 3306;
-$dbuser = $dbuser ?: "root";
-$dbpassword = $dbpassword ?: "";
-$dbname = $dbname ?: "framework_db";
-
-echo "\n📌 Ma'lumotlar bazasi sozlamalari saqlanmoqda...\n";
-
-// 2. Connection.php yaratish
-$connectionTemplate = <<<PHP
+// 1. Konfiguratsiya faylini yaratish
+$configContent = <<<EOL
 <?php
+return [
+    'dbhost' => 'localhost',
+    'dbport' => 3306,
+    'dbuser' => 'root',
+    'dbpassword' => '',
+    'dbname' => 'test_database',
+];
+EOL;
 
-use PDO;
+file_put_contents("config.php", $configContent);
+echo "✅ `config.php` yaratildi!\n";
 
-class Connection
-{
-    private \$connection;
+// 2. Ma'lumotlar bazasiga ulanishni tekshirish
+require_once "vendor/myframe/Connection.php";
+$connection = new Connection();
 
-    public function __construct()
-    {
-        \$dbhost = "$dbhost";
-        \$dbport = $dbport;
-        \$dbuser = "$dbuser";
-        \$dbpassword = "$dbpassword";
-        \$dbname = "$dbname";
-
-        try {
-            \$dsn = "mysql:host=\$dbhost;port=\$dbport;dbname=\$dbname;charset=utf8";
-            \$this->connection = new PDO(\$dsn, \$dbuser, \$dbpassword, [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
-            ]);
-        } catch (PDOException \$e) {
-            die("❌ Ma'lumotlar bazasiga ulanishda xatolik: " . \$e->getMessage());
-        }
-    }
-
-    public function getConnection()
-    {
-        return \$this->connection;
-    }
-}
-PHP;
-
-// Connection.php faylini yaratish
-file_put_contents("vendor\myframe\Connection.php", $connectionTemplate);
-echo "✅ Connection.php yaratildi!\n";
-
-// 3. Ma'lumotlar bazasini yaratish
 try {
-    $pdo = new PDO("mysql:host=$dbhost;port=$dbport", $dbuser, $dbpassword, [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
-    ]);
-
-    // Foydalanuvchidan bazani yaratish kerak yoki yo‘qligini so‘rash
-    $createDb = readline("Bazani yaratishni hohlaysizmi? (yes/no): ");
-    if (strtolower($createDb) === "yes") {
-        $pdo->exec("CREATE DATABASE IF NOT EXISTS `$dbname` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;");
-        echo "✅ `$dbname` bazasi yaratildi!\n";
-    }
-
-    // Bazaga ulanib, migratsiyalarni bajarish
-    $pdo->exec("USE `$dbname`");
-
-    // 4. Jadval yaratish (misol uchun)
-    $pdo->exec("
-        CREATE TABLE IF NOT EXISTS users (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            name VARCHAR(255) NOT NULL,
-            email VARCHAR(255) NOT NULL UNIQUE,
-            password VARCHAR(255) NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-    ");
-    echo "✅ `users` jadvali yaratildi!\n";
-
-} catch (PDOException $e) {
-    die("❌ Bazani yaratishda xatolik: " . $e->getMessage());
+    $db = $connection->getConnection();
+    echo "✅ Ma'lumotlar bazasiga muvaffaqiyatli ulandi!\n";
+} catch (Exception $e) {
+    die("❌ Xatolik: " . $e->getMessage());
 }
 
-echo "\n🎉 O'rnatish jarayoni yakunlandi! Frameworkdan foydalanishingiz mumkin.\n";
+// 3. Test jadval yaratish
+$tableSQL = "CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;";
+
+$db->exec($tableSQL);
+echo "✅ `users` jadvali yaratildi!\n";
+
+// 4. Install statusini saqlash
+file_put_contents("installed.lock", "installed");
+echo "✅ O‘rnatish muvaffaqiyatli yakunlandi!\n";
+
+// O‘rnatish tugadi
