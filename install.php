@@ -56,7 +56,7 @@ class Connection
 PHP;
 
 // Connection.php faylini yaratish
-file_put_contents("Connection.php", $connectionTemplate);
+file_put_contents("vendor\myframe\Connection.php", $connectionTemplate);
 echo "✅ Connection.php yaratildi!\n";
 
 // 3. Ma'lumotlar bazasini yaratish
