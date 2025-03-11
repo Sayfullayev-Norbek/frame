@@ -1,5 +1,11 @@
 <?php
 
+$connectionFile = "vendor/myframe/Connection.php";
+
+if (file_exists($connectionFile)) {
+    die("✅ Connection.php bor!\n");
+}
+
 echo "====================================\n";
 echo "  Framework o'rnatish jarayoni\n";
 echo "====================================\n";
@@ -56,8 +62,9 @@ class Connection
 PHP;
 
 $dir = "vendor/myframe";
-if (!is_dir($dir)) {
-    mkdir($dir, 0777, true);
+
+if (!is_dir("vendor/myframe")) {
+    mkdir("vendor/myframe", 0777, true);
 }
 
 $result = file_put_contents("$dir/Connection.php", $connectionTemplate);
@@ -80,18 +87,18 @@ try {
         echo "✅ `$dbname` bazasi yaratildi!\n";
     }
 
-    $pdo->exec("USE `$dbname`");
-
-    $pdo->exec("
-        CREATE TABLE IF NOT EXISTS users (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            name VARCHAR(255) NOT NULL,
-            email VARCHAR(255) NOT NULL UNIQUE,
-            password VARCHAR(255) NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-    ");
-    echo "✅ `users` jadvali yaratildi!\n";
+//    $pdo->exec("USE `$dbname`");
+//
+//    $pdo->exec("
+//        CREATE TABLE IF NOT EXISTS users (
+//            id INT AUTO_INCREMENT PRIMARY KEY,
+//            name VARCHAR(255) NOT NULL,
+//            email VARCHAR(255) NOT NULL UNIQUE,
+//            password VARCHAR(255) NOT NULL,
+//            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+//        );
+//    ");
+//    echo "✅ `users` jadvali yaratildi!\n";
 
 } catch (PDOException $e) {
     die("❌ Bazani yaratishda xatolik: " . $e->getMessage());
